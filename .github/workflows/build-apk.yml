@@ -33,8 +33,37 @@ jobs:
           fi
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Android project found at: $PROJECT_DIR"
-      - name: Enable AndroidX
+      - name: Repair missing Android resources
+        shell: bash
         run: |
+          RES="$PROJECT_DIR/app/src/main/res"
+          mkdir -p "$RES/values" "$RES/drawable"
+          cat > "$RES/values/strings.xml" <<'EOF'
+          <resources>
+              <string name="app_name">مترجم فوری صفحه</string>
+              <string name="accessibility_service_label">مترجم صفحه</string>
+              <string name="accessibility_service_desc">برای شناسایی متن روی صفحه و ترجمه آن، سرویس دسترس‌پذیری را فعال کنید.</string>
+              <string name="tile_label">ترجمه صفحه</string>
+          </resources>
+          EOF
+          cat > "$RES/values/styles.xml" <<'EOF'
+          <resources>
+              <style name="Theme.InstantPersianScreenTranslator" parent="@android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#C62828</item>
+                  <item name="android:statusBarColor">#B71C1C</item>
+                  <item name="android:navigationBarColor">#FFFFFF</item>
+                  <item name="android:windowLightStatusBar">false</item>
+              </style>
+          </resources>
+          EOF
+          cat > "$RES/drawable/ic_translate_tile.xml" <<'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+              <path android:fillColor="#FFFFFFFF" android:pathData="M12,3a9,9 0,1 0,0.01 0M7,7h10v2h-4v2h3v2h-3v4h-2v-4H8v-2h3V9H7z"/>
+          </vector>
+          EOF
+          sed -i 's|@mipmap/ic_launcher_round|@android:drawable/sym_def_app_icon|g; s|@mipmap/ic_launcher|@android:drawable/sym_def_app_icon|g' "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
           touch "$PROJECT_DIR/gradle.properties"
           grep -qxF 'android.useAndroidX=true' "$PROJECT_DIR/gradle.properties" || echo 'android.useAndroidX=true' >> "$PROJECT_DIR/gradle.properties"
           grep -qxF 'android.enableJetifier=true' "$PROJECT_DIR/gradle.properties" || echo 'android.enableJetifier=true' >> "$PROJECT_DIR/gradle.properties"
