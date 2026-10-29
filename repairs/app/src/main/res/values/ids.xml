@@ -1,0 +1,7 @@
+<resources>
+    <item name="overlay_progress" type="id" />
+    <item name="overlay_status_text" type="id" />
+    <item name="overlay_scroll" type="id" />
+    <item name="overlay_translated_text" type="id" />
+    <item name="overlay_original_text" type="id" />
+</resources>
