@@ -76,7 +76,7 @@ jobs:
           import pathlib, re, sys
           p = pathlib.Path(sys.argv[1])
           s = p.read_text()
-          pattern = r'(<service\\b(?=[^>]*android:name="\\.service\\.ScreenCaptureAccessibilityService")[^>]*)(/?>)'
+          pattern = r'(<service\b(?=[^>]*android:name="\.service\.ScreenCaptureAccessibilityService")[^>]*)(/?>)'
           m = re.search(pattern, s, re.S)
           if not m:
               raise SystemExit('Accessibility service declaration not found in AndroidManifest.xml')
