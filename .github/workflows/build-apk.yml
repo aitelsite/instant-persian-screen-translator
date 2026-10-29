@@ -6,6 +6,7 @@ on:
     paths:
       - 'InstantPersianScreenTranslator_GalaxyA53.zip'
       - '.github/workflows/build-apk.yml'
+      - 'repairs/**'
 
 permissions:
   contents: read
