@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'InstantPersianScreenTranslator_cloud_build_fixed.zip'
+      - 'InstantPersianScreenTranslator_GalaxyA53.zip'
       - '.github/workflows/build-apk.yml'
 
 permissions:
@@ -20,19 +20,29 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Check source archive
-        run: test -f InstantPersianScreenTranslator_cloud_build_fixed.zip
+        run: test -f InstantPersianScreenTranslator_GalaxyA53.zip
       - name: Extract Android project
-        run: unzip -q InstantPersianScreenTranslator_cloud_build_fixed.zip -d source
+        run: unzip -q InstantPersianScreenTranslator_GalaxyA53.zip -d source
+      - name: Locate Android project
+        run: |
+          PROJECT_DIR="$(find source -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs -r dirname)"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Could not find settings.gradle or settings.gradle.kts in the source archive."
+            find source -maxdepth 3 -type f | head -80
+            exit 1
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Android project found at: $PROJECT_DIR"
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
       - name: Build debug APK
-        run: gradle --no-daemon -p source/InstantPersianScreenTranslator assembleDebug
+        run: gradle --no-daemon -p "$PROJECT_DIR" assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: InstantPersian-debug-apk
-          path: source/InstantPersianScreenTranslator/app/build/outputs/apk/debug/app-debug.apk
+          path: source/**/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
