@@ -71,6 +71,24 @@ jobs:
           </vector>
           EOF
           sed -i 's|@mipmap/ic_launcher_round|@android:drawable/sym_def_app_icon|g; s|@mipmap/ic_launcher|@android:drawable/sym_def_app_icon|g' "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
+          # Accessibility services must be exported for Android's system service to bind to them.
+          python3 - "$PROJECT_DIR/app/src/main/AndroidManifest.xml" <<'PY'
+          import pathlib, re, sys
+          p = pathlib.Path(sys.argv[1])
+          s = p.read_text()
+          pattern = r'(<service\\b(?=[^>]*android:name="\\.service\\.ScreenCaptureAccessibilityService")[^>]*)(/?>)'
+          m = re.search(pattern, s, re.S)
+          if not m:
+              raise SystemExit('Accessibility service declaration not found in AndroidManifest.xml')
+          tag = m.group(0)
+          if 'android:exported=' in tag:
+              tag = re.sub(r'android:exported="[^"]+"', 'android:exported="true"', tag)
+          else:
+              tag = tag[:-2] + ' android:exported="true">' if tag.endswith('/>') else tag[:-1] + ' android:exported="true">'
+          s = s[:m.start()] + tag + s[m.end():]
+          p.write_text(s)
+          print('Accessibility service exported=true patched')
+          PY
           touch "$PROJECT_DIR/gradle.properties"
           grep -qxF 'android.useAndroidX=true' "$PROJECT_DIR/gradle.properties" || echo 'android.useAndroidX=true' >> "$PROJECT_DIR/gradle.properties"
           grep -qxF 'android.enableJetifier=true' "$PROJECT_DIR/gradle.properties" || echo 'android.enableJetifier=true' >> "$PROJECT_DIR/gradle.properties"
