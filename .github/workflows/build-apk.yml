@@ -33,6 +33,12 @@ jobs:
           fi
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Android project found at: $PROJECT_DIR"
+      - name: Restore missing Android source files
+        shell: bash
+        run: |
+          cp -R "$GITHUB_WORKSPACE/repairs/app/src/main/." "$PROJECT_DIR/app/src/main/"
+          echo 'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' >> "$PROJECT_DIR/gradle.properties"
+          echo 'org.gradle.workers.max=2' >> "$PROJECT_DIR/gradle.properties"
       - name: Repair missing Android resources
         shell: bash
         run: |
@@ -72,7 +78,7 @@ jobs:
         with:
           gradle-version: '8.7'
       - name: Build debug APK
-        run: gradle --no-daemon -p "$PROJECT_DIR" assembleDebug
+        run: gradle --no-daemon --max-workers=2 -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" -p "$PROJECT_DIR" assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
